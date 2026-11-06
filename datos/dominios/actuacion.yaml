@@ -1,0 +1,44 @@
+# Dominio Actuación: exponer una habilidad ante gente.
+# Es transversal: lo comparten música, magia, baile, impro o un monólogo.
+# Nace de la clase de break: los días claros se improvisa con piezas pequeñas,
+# los días difusos se tira de bloques montados.
+
+dominio:
+  id: actuacion
+  nombre: Actuación
+  descripcion: Lo que cambia cuando haces algo delante de otras personas, sea cual sea la disciplina.
+
+conceptos:
+  - id: actuacion.presencia
+    nombre: Presencia
+    descripcion: Estar ahí; postura, mirada y ocupar el espacio con naturalidad.
+
+  - id: actuacion.nervios
+    nombre: Gestión del nervio
+    descripcion: Que la activación de tener público no rompa la ejecución.
+
+  - id: actuacion.gestion-atencion
+    nombre: Gestión de la atención
+    descripcion: Decidir hacia dónde mira y escucha el público en cada momento.
+
+  - id: actuacion.leer-publico
+    nombre: Leer al público
+    descripcion: Notar qué está funcionando y ajustar sobre la marcha.
+    requiere: [actuacion.presencia]
+
+  - id: actuacion.repertorio-fijo
+    nombre: Repertorio fijo
+    descripcion: Bloques grandes montados de antemano (un set) a los que volver cuando cuesta.
+    requiere: [actuacion.nervios]
+
+  - id: actuacion.adaptar-al-estado
+    nombre: Adaptarse al estado del día
+    descripcion: Elegir entre combinar piezas pequeñas (más libre) o tirar de bloques grandes (menos carga) según cómo estés.
+    requiere: [actuacion.repertorio-fijo]
+
+  - id: actuacion.improvisacion
+    nombre: Improvisación en escena
+    descripcion: Recombinar en tiempo real lo aprendido para responder al momento y al público.
+    requiere:
+      - actuacion.adaptar-al-estado
+      - { id: actuacion.leer-publico, modo: aplicado }
