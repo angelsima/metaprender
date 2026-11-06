@@ -1,0 +1,140 @@
+# Disciplina Percusión corporal (dominio Música).
+# Comparte con la guitarra la clave, el tumbao y el compás de bulería:
+# mismos conceptos, otra forma de realizarlos.
+
+disciplina:
+  id: percusion-corporal
+  nombre: Percusión corporal
+  dominio: musica
+  capas:
+    cuerpo: [sonido, celula, patron, ciclo, pieza]
+  etiquetas_capas: { celula: célula, patron: patrón }
+  familias:
+    - { id: manos, nombre: Manos y palmas }
+    - { id: cuerpo, nombre: Muslos y pecho }
+    - { id: pies, nombre: Pies }
+    - { id: coordinacion, nombre: Coordinación e independencia }
+  indicadores:
+    - { id: tempo, nombre: Tempo }
+    - { id: claridad, nombre: Claridad de sonidos, descripcion: "Que cada sonido se distinga del resto." }
+    - { id: independencia, nombre: Independencia, descripcion: "Manos y pies haciendo cosas distintas sin arrastrarse." }
+    - { id: cuadratura, nombre: Cuadratura }
+    - { id: dinamica, nombre: Dinámica }
+
+piezas:
+  # --- Sonidos ---
+  - id: percu.sonido.palmada-aguda
+    nombre: Palmada aguda
+    descripcion: Dedos sobre la palma, seca y brillante.
+    capa: sonido
+    familia: manos
+
+  - id: percu.sonido.palmada-sorda
+    nombre: Palmada sorda
+    descripcion: Manos ahuecadas, grave y apagada.
+    capa: sonido
+    familia: manos
+
+  - id: percu.sonido.muslo
+    nombre: Golpe en el muslo
+    capa: sonido
+    familia: cuerpo
+
+  - id: percu.sonido.pecho
+    nombre: Golpe en el pecho
+    descripcion: El sonido más grave del cuerpo; hace de bombo o de tono abierto.
+    capa: sonido
+    familia: cuerpo
+
+  - id: percu.sonido.pisada
+    nombre: Pisada
+    capa: sonido
+    familia: pies
+
+  # --- Células ---
+  - id: percu.celula.pulso-pies
+    nombre: Pulso con los pies
+    descripcion: Pisadas alternas marcando el pulso mientras las manos van libres.
+    capa: celula
+    familia: pies
+    compuesto_de: [percu.sonido.pisada]
+    realiza: [musica.pulso]
+    indicadores: [tempo]
+
+  - id: percu.celula.manos-contra-pies
+    nombre: Contratiempos sobre el pulso
+    descripcion: Los pies siguen en el pulso mientras las manos tocan fuera de él.
+    capa: celula
+    familia: coordinacion
+    compuesto_de:
+      - { id: percu.celula.pulso-pies, etapa: a-tempo }
+      - percu.sonido.palmada-aguda
+    realiza: [musica.contratiempo]
+    indicadores: [independencia]
+
+  # --- Patrones ---
+  - id: percu.patron.clave-palmas
+    nombre: Clave de son en palmas
+    capa: patron
+    familia: manos
+    compuesto_de: [percu.sonido.palmada-aguda]
+    requiere: [musica.contratiempo]
+    realiza: [musica.salsa.clave-son]
+    caracteriza: [musica.estilo.salsa]
+    indicadores: [cuadratura, claridad]
+
+  - id: percu.patron.tumbao-cuerpo
+    nombre: Tumbao de conga en el cuerpo
+    descripcion: Los tonos abiertos en el pecho y los golpes secos en el muslo.
+    capa: patron
+    familia: cuerpo
+    compuesto_de: [percu.sonido.pecho, percu.sonido.muslo]
+    realiza: [musica.salsa.tumbao-conga]
+    caracteriza: [musica.estilo.salsa]
+    revisar: true
+
+  - id: percu.patron.palmas-buleria
+    nombre: Palmas de bulería
+    descripcion: Palmas sordas y agudas marcando los acentos del doce.
+    capa: patron
+    familia: manos
+    compuesto_de: [percu.sonido.palmada-sorda, percu.sonido.palmada-aguda]
+    realiza: [musica.buleria.compas-12]
+    caracteriza: [musica.estilo.buleria]
+    indicadores: [cuadratura]
+
+  # --- Ciclos ---
+  - id: percu.ciclo.clave-sobre-pulso
+    nombre: Clave en palmas sobre pulso en pies
+    capa: ciclo
+    familia: coordinacion
+    compuesto_de:
+      - { id: percu.patron.clave-palmas, etapa: a-tempo }
+      - { id: percu.celula.manos-contra-pies, etapa: a-tempo }
+    realiza: [musica.polirritmia]
+    caracteriza: [musica.estilo.salsa]
+    indicadores: [independencia, cuadratura]
+
+  - id: percu.ciclo.tumbao-sobre-pulso
+    nombre: Tumbao en el cuerpo sobre pulso en pies
+    capa: ciclo
+    familia: coordinacion
+    compuesto_de:
+      - { id: percu.patron.tumbao-cuerpo, etapa: a-tempo }
+      - percu.celula.pulso-pies
+    realiza: [musica.polirritmia]
+    caracteriza: [musica.estilo.salsa]
+
+  # --- Pieza completa ---
+  - id: percu.pieza.salsa-corporal
+    nombre: Acompañar un tema de salsa solo con el cuerpo
+    descripcion: Entrar, sostener, variar la intensidad y cerrar.
+    capa: pieza
+    familia: coordinacion
+    compuesto_de: [percu.ciclo.clave-sobre-pulso, percu.ciclo.tumbao-sobre-pulso]
+    requiere:
+      - musica.dinamica
+      - { id: musica.forma, modo: intuitivo }
+      - actuacion.repertorio-fijo
+    caracteriza: [musica.estilo.salsa]
+    indicadores: [dinamica]

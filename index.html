@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Vías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+<style>
+  :root {
+    --roca: #E4E7E2;
+    --pared: #F4F5F2;
+    --papel: #FFFFFF;
+    --tinta: #1E2227;
+    --tinta-2: #59606A;
+    --linea: #A9AFA8;
+    --linea-suave: #CCD1CB;
+    --via: #CF2229;
+    --via-tenue: rgba(207, 34, 41, .10);
+    --magnesio: #DCE3E9;
+    --concepto: #7E98AC;
+    --avance: #2D7A57;
+    --revisar: #A86400;
+    --carril: rgba(30, 34, 39, .035);
+    --sombra: 0 1px 0 rgba(30, 34, 39, .08);
+    --fuente: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --roca: #14171A;
+      --pared: #1B1F23;
+      --papel: #23282D;
+      --tinta: #E8EBEE;
+      --tinta-2: #A1A9B1;
+      --linea: #56606A;
+      --linea-suave: #39414A;
+      --via: #FF5C61;
+      --via-tenue: rgba(255, 92, 97, .14);
+      --magnesio: #1F2A33;
+      --concepto: #7FA2BC;
+      --avance: #4CC38A;
+      --revisar: #E09A2D;
+      --carril: rgba(255, 255, 255, .025);
+      --sombra: 0 1px 0 rgba(0, 0, 0, .4);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: var(--fuente);
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--tinta);
+    background: var(--roca);
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  button, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--via); outline-offset: 2px; }
+
+  /* Cabecera */
+  .cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 28px;
+    padding: 18px 24px 12px;
+  }
+  .marca {
+    margin: 0;
+    font-size: 44px;
+    line-height: .9;
+    font-weight: 800;
+    font-stretch: 62%;
+    letter-spacing: -.01em;
+  }
+  .marca small {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 400;
+    font-stretch: 100%;
+    letter-spacing: 0;
+    color: var(--tinta-2);
+  }
+  .vias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+  }
+  .via-chip {
+    border: 1px solid var(--linea);
+    background: transparent;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .via-chip[aria-pressed="true"] { background: var(--tinta); color: var(--roca); border-color: var(--tinta); }
+  .ajustes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .ajustes label { font-size: 13px; color: var(--tinta-2); display: flex; flex-direction: column; gap: 2px; }
+  .ajustes select {
+    background: var(--papel);
+    border: 1px solid var(--linea-suave);
+    border-radius: 6px;
+    padding: 5px 8px;
+    min-width: 150px;
+    max-width: 230px;
+  }
+
+  /* Pestañas */
+  .pestanas {
+    display: flex;
+    gap: 2px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--linea-suave);
+  }
+  .pestana {
+    background: none;
+    border: none;
+    padding: 8px 14px 10px;
+    font-weight: 600;
+    color: var(--tinta-2);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .pestana[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--via); }
+
+  /* Cuerpo */
+  .vista { min-height: 0; }
+  .vista-mapa {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    min-height: 0;
+  }
+  .lienzo-marco {
+    position: relative;
+    overflow: auto;
+    padding-bottom: 56px;
+    background: var(--pared);
+    min-height: 420px;
+  }
+  .mapa-envoltura { position: relative; display: grid; min-height: 0; min-width: 0; }
+  .zoom {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 5;
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 8px;
+    background: var(--papel);
+    box-shadow: var(--sombra);
+    border: 1px solid var(--linea-suave);
+  }
+  .zoom button {
+    border: none;
+    background: none;
+    min-width: 32px;
+    height: 30px;
+    border-radius: 5px;
+    font-weight: 700;
+  }
+  .zoom button:hover { background: var(--roca); }
+  .escala { transform-origin: 0 0; position: relative; }
+  .lienzo { position: absolute; top: 0; left: 0; }
+  .lienzo svg { position: absolute; top: 0; left: 0; overflow: visible; }
+
+  .carril-fondo { fill: var(--carril); }
+  .carril-dominio { fill: var(--magnesio); opacity: .55; }
+  .carril-nombre {
+    position: absolute;
+    width: 118px;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--tinta-2);
+  }
+  .carril-nombre b { display: block; color: var(--tinta); font-size: 13px; }
+
+  .arista { fill: none; stroke: var(--linea); stroke-width: 1.4; transition: stroke .15s, opacity .15s; }
+  .arista.requiere { stroke-dasharray: 5 4; }
+  .arista-texto {
+    font-size: 11px;
+    fill: var(--tinta-2);
+    paint-order: stroke;
+    stroke: var(--pared);
+    stroke-width: 4px;
+  }
+
+  .nodo {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px 7px 12px;
+    text-align: left;
+    background: var(--papel);
+    border: 1px solid var(--linea-suave);
+    border-left: 4px solid var(--tinta-2);
+    border-radius: 4px;
+    box-shadow: var(--sombra);
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 600;
+    transition: opacity .15s, border-color .15s;
+  }
+  .nodo .nombre {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nodo.concepto {
+    border: 1px dashed var(--concepto);
+    border-radius: 999px;
+    background: var(--papel);
+    padding-left: 14px;
+    font-weight: 500;
+  }
+  .nodo.objetivo { border-left-color: var(--tinta); border-left-width: 6px; }
+  .nodo .bandera { color: var(--revisar); font-weight: 700; margin-left: 4px; }
+  .barra { display: flex; gap: 2px; }
+  .barra i { flex: 1; height: 4px; border-radius: 2px; background: var(--linea-suave); }
+  .barra i.lleno { background: var(--avance); }
+
+  .lienzo.foco .nodo, .lienzo.foco .arista, .lienzo.foco .arista-texto { opacity: .22; }
+  .lienzo.foco .nodo.en-via, .lienzo.foco .nodo.despues { opacity: 1; }
+  .lienzo.foco .arista.en-via { opacity: 1; stroke: var(--via); stroke-width: 2.4; }
+  .lienzo.foco .arista.despues { opacity: .9; stroke: var(--tinta-2); }
+  .lienzo.foco .arista-texto.en-via, .lienzo.foco .arista-texto.despues { opacity: 1; }
+  .nodo.en-via { border-color: var(--via); }
+  .nodo.elegido { box-shadow: 0 0 0 3px var(--via-tenue), var(--sombra); border-color: var(--via); border-left-color: var(--via); }
+
+  /* Panel lateral */
+  .panel {
+    border-left: 1px solid var(--linea-suave);
+    background: var(--papel);
+    padding: 20px 22px 32px;
+    overflow: auto;
+  }
+  .panel h2 { margin: 0 0 4px; font-size: 22px; line-height: 1.15; font-weight: 700; }
+  .panel .sub { color: var(--tinta-2); font-size: 13px; margin: 0 0 12px; }
+  .panel p { margin: 0 0 12px; }
+  .panel h3 { font-size: 13px; margin: 18px 0 6px; color: var(--tinta-2); font-weight: 600; }
+  .panel ul { margin: 0; padding-left: 0; list-style: none; }
+  .panel li { margin: 3px 0; }
+  .enlace {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--tinta);
+    text-decoration: underline;
+    text-decoration-color: var(--linea);
+    text-underline-offset: 3px;
+    text-align: left;
+  }
+  .enlace:hover { text-decoration-color: var(--via); }
+  .grado { color: var(--tinta-2); font-size: 13px; }
+  .aviso-revisar {
+    border-left: 3px solid var(--revisar);
+    padding: 6px 10px;
+    margin: 0 0 12px;
+    font-size: 13px;
+    background: rgba(168, 100, 0, .08);
+  }
+  .leyenda { display: grid; gap: 8px; margin-top: 8px; font-size: 13px; }
+  .leyenda div { display: flex; align-items: center; gap: 10px; }
+  .leyenda svg { flex: none; }
+  .resumen { font-size: 15px; }
+  .resumen strong { font-size: 28px; font-weight: 800; font-stretch: 75%; display: block; line-height: 1; }
+  .cifras { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 20px; margin: 12px 0 16px; }
+
+  .selector {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    margin: 4px 0 4px;
+  }
+  .selector button {
+    border: 1px solid var(--linea-suave);
+    background: var(--pared);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .selector button[aria-pressed="true"] { background: var(--avance); border-color: var(--avance); color: #fff; }
+  .selector button.antes { background: rgba(45, 122, 87, .15); border-color: rgba(45, 122, 87, .35); }
+
+  /* Recorrido, estilos y conceptos */
+  .documento {
+    overflow: auto;
+    padding: 24px;
+    background: var(--pared);
+  }
+  .documento-interior { max-width: 920px; }
+  .documento h2 { font-size: 26px; margin: 0 0 6px; font-weight: 800; font-stretch: 75%; }
+  .documento h3 { font-size: 18px; margin: 28px 0 8px; }
+  .documento .sub { color: var(--tinta-2); margin: 0 0 18px; max-width: 70ch; }
+  .paso {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    gap: 4px 14px;
+    padding: 12px 0;
+    border-top: 1px solid var(--linea-suave);
+  }
+  .paso .num { font-weight: 800; font-stretch: 75%; font-size: 20px; color: var(--tinta-2); }
+  .paso .titulo { font-weight: 700; }
+  .paso .meta { color: var(--tinta-2); font-size: 13px; }
+  .paso .detalle { grid-column: 2 / 3; font-size: 14px; color: var(--tinta-2); }
+  .paso .detalle span { display: block; }
+  .paso .selector { grid-column: 3; grid-row: 1 / span 2; align-self: start; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--papel); }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea-suave); vertical-align: top; }
+  th { font-weight: 600; color: var(--tinta-2); font-size: 13px; }
+  .tarjeta {
+    background: var(--papel);
+    border: 1px solid var(--linea-suave);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 0 0 14px;
+  }
+  .tarjeta h3 { margin: 0 0 4px; }
+  .vacio { padding: 40px 24px; color: var(--tinta-2); }
+
+  @media (max-width: 900px) {
+    .vista-mapa { grid-template-columns: minmax(0, 1fr); }
+    .lienzo-marco { min-height: 60vh; }
+    .panel { border-left: none; border-top: 1px solid var(--linea-suave); }
+    .paso { grid-template-columns: 30px 1fr; }
+    .paso .selector { grid-column: 2; grid-row: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <header class="cabecera">
+    <h1 class="marca">Vías<small>Rutas de aprendizaje abiertas pieza a pieza</small></h1>
+    <nav class="vias" id="vias" aria-label="Vías guardadas"></nav>
+    <div class="ajustes">
+      <label>Disciplina <select id="selDisciplina"></select></label>
+      <label>Estilo <select id="selEstilo"></select></label>
+      <label>Hasta <select id="selObjetivo"></select></label>
+    </div>
+  </header>
+
+  <div class="pestanas" role="tablist">
+    <button class="pestana" role="tab" data-vista="mapa" aria-selected="true">Mapa</button>
+    <button class="pestana" role="tab" data-vista="recorrido" aria-selected="false">Recorrido</button>
+    <button class="pestana" role="tab" data-vista="estilos" aria-selected="false">Estilos</button>
+    <button class="pestana" role="tab" data-vista="conceptos" aria-selected="false">Conceptos compartidos</button>
+  </div>
+
+  <main class="vista vista-mapa" id="vista-mapa">
+    <div class="mapa-envoltura">
+      <div class="lienzo-marco" id="marco">
+        <div class="escala" id="escala"><div class="lienzo" id="lienzo"></div></div>
+      </div>
+      <div class="zoom" role="group" aria-label="Zoom">
+        <button id="zoomMenos" title="Alejar">−</button>
+        <button id="zoomAjustar" title="Ajustar al ancho">Ajustar</button>
+        <button id="zoomMas" title="Acercar">+</button>
+      </div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </main>
+  <section class="vista documento" id="vista-recorrido" hidden></section>
+  <section class="vista documento" id="vista-estilos" hidden></section>
+  <section class="vista documento" id="vista-conceptos" hidden></section>
+
+  <script src="generado/datos.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const D = window.VIAS_DATOS;
+    if (!D) {
+      document.body.innerHTML = '<p class="vacio">No encuentro <code>generado/datos.js</code>. ' +
+        'Se crea al ejecutar <code>python herramientas/vias.py todo</code> (o lo hace la acción de GitHub al subir cambios).</p>';
+      return;
+    }
+
+    // ---------- Grafo ----------
+    const N = new Map(D.nodos.map(n => [n.id, n]));
+    const OUT = new Map(), IN = new Map();
+    for (const r of D.relaciones) {
+      if (!OUT.has(r.origen)) OUT.set(r.origen, []);
+      if (!IN.has(r.destino)) IN.set(r.destino, []);
+      OUT.get(r.origen).push(r);
+      IN.get(r.destino).push(r);
+    }
+    const PRE = new Set(['compuesto_de', 'requiere']);
+    const ETAPAS = D.etapas, MODOS = D.modos;
+    const sal = id => OUT.get(id) || [];
+    const ent = id => IN.get(id) || [];
+    const prereqs = id => sal(id).filter(r => PRE.has(r.rel) && N.has(r.destino));
+    const nombre = id => (N.get(id) || {}).nombre || id;
+    const legible = s => (s || '').replace(/-/g, ' ');
+    const esPieza = id => (N.get(id) || {}).tipo === 'pieza';
+    const esConcepto = id => (N.get(id) || {}).tipo === 'concepto';
+    const rango = id => {
+      const n = N.get(id), d = n && D.disciplinas[n.disciplina];
+      return d && n.capa in d.rango ? d.rango[n.capa] : 99;
+    };
+    const etiquetaCapa = n => {
+      const d = D.disciplinas[n.disciplina];
+      return (d && d.etiquetas && d.etiquetas[n.capa]) || n.capa;
+    };
+    const comparar = (a, b) => {
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] < b[i]) return -1;
+        if (a[i] > b[i]) return 1;
+      }
+      return 0;
+    };
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function objetivosDe(cfg) {
+      if (cfg.objetivo) return [cfg.objetivo];
+      const piezas = D.nodos.filter(n => n.tipo === 'pieza' && n.disciplina === cfg.disciplina);
+      if (!cfg.estilo) return piezas.map(p => p.id);
+      const caracteriza = id => sal(id).some(r => r.rel === 'caracteriza' && r.destino === cfg.estilo);
+      return piezas.filter(p => caracteriza(p.id) ||
+        sal(p.id).some(r => r.rel === 'realiza' && caracteriza(r.destino))).map(p => p.id);
+    }
+
+    function cierre(objetivos) {
+      const vistos = new Set(), pila = [...objetivos];
+      while (pila.length) {
+        const n = pila.pop();
+        if (vistos.has(n) || !N.has(n)) continue;
+        vistos.add(n);
+        for (const r of prereqs(n)) pila.push(r.destino);
+      }
+      return vistos;
+    }
+
+    function topo(ids, clave) {
+      const conjunto = new Set(ids);
+      const faltan = new Map(ids.map(n => [n, new Set(prereqs(n).map(r => r.destino).filter(d => conjunto.has(d)))]));
+      const orden = [];
+      let listos = ids.filter(n => faltan.get(n).size === 0);
+      while (listos.length) {
+        listos.sort((a, b) => comparar(clave(a), clave(b)));
+        const n = listos.shift();
+        orden.push(n);
+        for (const [m, deps] of faltan) {
+          if (deps.delete(n) && deps.size === 0) listos.push(m);
+        }
+      }
+      return orden;
+    }
+
+    function calcularRuta(cfg) {
+      const objetivos = objetivosDe(cfg);
+      const todo = cierre(objetivos);
+      const lista = [...todo];
+      const piezas = topo(lista.filter(esPieza), id => [rango(id), nombre(id)]);
+      const conceptos = topo(lista.filter(esConcepto), id => [N.get(id).dominio, nombre(id)]);
+      const setPiezas = new Set(piezas);
+      const directos = conceptos.filter(c => ent(c).some(r => r.rel === 'requiere' && setPiezas.has(r.origen)));
+      const disciplina = cfg.disciplina || (N.get(cfg.objetivo) || {}).disciplina;
+      return { objetivos, todo, piezas, conceptos, directos, disciplina };
+    }
+
+    function gradoPedido(concepto, dentro) {
+      const modos = ent(concepto).filter(r => r.rel === 'requiere' && dentro.has(r.origen) && r.modo).map(r => r.modo);
+      return modos.length ? modos.reduce((a, b) => MODOS.indexOf(a) >= MODOS.indexOf(b) ? a : b) : null;
+    }
+
+    // ---------- Progreso (de quien aprende, guardado en este navegador) ----------
+    const CLAVE_PROGRESO = 'vias:progreso:v1';
+    let progreso = { piezas: {}, conceptos: {} };
+    try {
+      const guardado = JSON.parse(localStorage.getItem(CLAVE_PROGRESO) || 'null');
+      if (guardado && guardado.piezas && guardado.conceptos) progreso = guardado;
+    } catch (e) { /* sin almacenamiento: el progreso dura lo que la pestaña */ }
+    function guardarProgreso() {
+      try { localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(progreso)); } catch (e) { /* nada */ }
+    }
+    const nivel = id => {
+      const tabla = esPieza(id) ? progreso.piezas : progreso.conceptos;
+      return id in tabla ? tabla[id] : -1;
+    };
+    function fijarNivel(id, i) {
+      const tabla = esPieza(id) ? progreso.piezas : progreso.conceptos;
+      if (tabla[id] === i) delete tabla[id]; else tabla[id] = i;
+      guardarProgreso();
+      pintarTodo(false);
+    }
+
+    function selectorNivel(id) {
+      const escala = esPieza(id) ? ETAPAS : MODOS;
+      const actual = nivel(id);
+      return '<div class="selector" role="group" aria-label="' + (esPieza(id) ? 'Tu etapa' : 'Cómo lo conoces') + '">' +
+        escala.map((e, i) => '<button data-nivel="' + i + '" data-id="' + esc(id) + '" aria-pressed="' + (i === actual) + '"' +
+          (i < actual ? ' class="antes"' : '') + '>' + esc(legible(e)) + '</button>').join('') + '</div>';
+    }
+
+    // ---------- Estado ----------
+    const estado = { via: null, disciplina: null, estilo: '', objetivo: '', elegido: null, vista: 'mapa', zoom: 1 };
+    let ruta = null;
+
+    // El enlace guarda solo la vía elegida (#guitarra-salsa); los filtros a medida no se guardan.
+    function leerHash() {
+      const via = D.vias.find(v => v.id === decodeURIComponent(location.hash.slice(1)));
+      aplicarVia(via || D.vias[0], false);
+    }
+    function escribirHash() {
+      const destino = estado.via ? '#' + estado.via : location.pathname + location.search;
+      try { history.replaceState(null, '', destino); } catch (e) { /* sin historial */ }
+    }
+    function aplicarVia(via, hash = true) {
+      estado.via = via.id;
+      estado.objetivo = via.objetivo || '';
+      estado.disciplina = via.disciplina || (N.get(via.objetivo) || {}).disciplina;
+      estado.estilo = via.estilo || '';
+      estado.elegido = null;
+      if (hash) escribirHash();
+    }
+
+    // ---------- Cabecera ----------
+    const $ = id => document.getElementById(id);
+    function pintarCabecera() {
+      $('vias').innerHTML = D.vias.map(v => '<button class="via-chip" data-via="' + esc(v.id) + '" aria-pressed="' +
+        (v.id === estado.via) + '">' + esc(v.titulo) + '</button>').join('');
+      $('selDisciplina').innerHTML = Object.entries(D.disciplinas).map(([id, d]) =>
+        '<option value="' + esc(id) + '"' + (id === estado.disciplina ? ' selected' : '') + '>' + esc(d.nombre) + '</option>').join('');
+      const dominio = (D.disciplinas[estado.disciplina] || {}).dominio;
+      const estilos = D.nodos.filter(n => n.tipo === 'estilo' && n.dominio === dominio);
+      $('selEstilo').innerHTML = '<option value="">Todas las piezas</option>' + estilos.map(e =>
+        '<option value="' + esc(e.id) + '"' + (e.id === estado.estilo ? ' selected' : '') + '>' + esc(e.nombre) + '</option>').join('');
+      const piezas = D.nodos.filter(n => n.tipo === 'pieza' && n.disciplina === estado.disciplina)
+        .sort((a, b) => rango(a.id) - rango(b.id) || a.nombre.localeCompare(b.nombre, 'es'));
+      $('selObjetivo').innerHTML = '<option value="">Todo lo del filtro</option>' + piezas.map(p =>
+        '<option value="' + esc(p.id) + '"' + (p.id === estado.objetivo ? ' selected' : '') + '>' + esc(p.nombre) + '</option>').join('');
+      $('selEstilo').disabled = !!estado.objetivo;
+    }
+
+    // ---------- Mapa ----------
+    const W = 196, H = 58, SEP_COL = 54, SEP_FILA = 12, MARGEN = 18, ANCHO_ETIQ = 130;
+
+    function maquetar(r) {
+      const ids = [...r.piezas, ...r.directos];
+      const conjunto = new Set(ids);
+      const orden = topo(ids, id => [esConcepto(id) ? 0 : 1, rango(id), nombre(id)]);
+      const prof = {};
+      for (const id of orden) {
+        let p = 0;
+        for (const x of prereqs(id)) if (conjunto.has(x.destino)) p = Math.max(p, prof[x.destino] + 1);
+        prof[id] = p;
+      }
+      const disc = D.disciplinas[r.disciplina];
+      const cadenas = [];
+      for (const c of disc.capas) if (!cadenas.includes(c.cadena)) cadenas.push(c.cadena);
+      const carriles = [];
+      if (r.directos.length) carriles.push({ id: '__dominio', titulo: 'Del dominio', detalle: 'conceptos que piden las piezas' });
+      for (const c of cadenas) {
+        const capas = disc.capas.filter(x => x.cadena === c).map(x => (disc.etiquetas && disc.etiquetas[x.capa]) || x.capa);
+        carriles.push({ id: c, titulo: capas[0].charAt(0).toUpperCase() + capas[0].slice(1), detalle: capas.join(' → ') });
+      }
+      const carrilDe = id => esConcepto(id) ? '__dominio' : N.get(id).cadena;
+      const celdas = new Map();
+      for (const id of ids) {
+        const k = carrilDe(id) + '|' + prof[id];
+        if (!celdas.has(k)) celdas.set(k, []);
+        celdas.get(k).push(id);
+      }
+      for (const lista of celdas.values()) lista.sort((a, b) => rango(a) - rango(b) || nombre(a).localeCompare(nombre(b), 'es'));
+
+      const maxProf = Math.max(0, ...Object.values(prof));
+      const pos = {};
+      let y = MARGEN;
+      for (const c of carriles) {
+        let maxN = 1;
+        for (let d = 0; d <= maxProf; d++) maxN = Math.max(maxN, (celdas.get(c.id + '|' + d) || []).length);
+        c.y = y;
+        c.alto = maxN * (H + SEP_FILA) - SEP_FILA + 2 * MARGEN;
+        y += c.alto + 10;
+      }
+      const colocar = () => {
+        for (const c of carriles) {
+          for (let d = 0; d <= maxProf; d++) {
+            const lista = celdas.get(c.id + '|' + d) || [];
+            const altoCelda = lista.length * (H + SEP_FILA) - SEP_FILA;
+            const y0 = c.y + (c.alto - altoCelda) / 2;
+            lista.forEach((id, i) => { pos[id] = { x: ANCHO_ETIQ + 24 + d * (W + SEP_COL), y: y0 + i * (H + SEP_FILA) }; });
+          }
+        }
+      };
+      colocar();
+      // Una pasada de baricentro para cruzar menos líneas.
+      for (const lista of celdas.values()) {
+        const media = id => {
+          const ys = prereqs(id).filter(x => pos[x.destino]).map(x => pos[x.destino].y);
+          return ys.length ? ys.reduce((a, b) => a + b, 0) / ys.length : pos[id].y;
+        };
+        const medias = new Map(lista.map(id => [id, media(id)]));
+        lista.sort((a, b) => medias.get(a) - medias.get(b));
+      }
+      colocar();
+      return {
+        ids, conjunto, pos, carriles,
+        ancho: ANCHO_ETIQ + 24 + (maxProf + 1) * (W + SEP_COL) + MARGEN,
+        alto: y + MARGEN
+      };
+    }
+
+    let maqueta = null;
+
+    function pintarMapa() {
+      const r = ruta, m = maqueta = maquetar(r);
+      const lienzo = $('lienzo');
+      lienzo.style.width = m.ancho + 'px';
+      lienzo.style.height = m.alto + 'px';
+      const objetivos = new Set(r.objetivos);
+
+      let svg = '<svg width="' + m.ancho + '" height="' + m.alto + '" aria-hidden="true">';
+      for (const c of m.carriles) {
+        svg += '<rect class="' + (c.id === '__dominio' ? 'carril-dominio' : 'carril-fondo') + '" x="0" y="' + c.y +
+          '" width="' + m.ancho + '" height="' + c.alto + '" rx="6"/>';
+      }
+      const textos = [];
+      for (const id of m.ids) {
+        for (const a of prereqs(id)) {
+          if (!m.conjunto.has(a.destino)) continue;
+          const o = m.pos[a.destino], d = m.pos[id];
+          const x1 = o.x + W, y1 = o.y + H / 2, x2 = d.x - 2, y2 = d.y + H / 2;
+          const dx = Math.max(30, (x2 - x1) / 2);
+          const clase = 'arista ' + (a.rel === 'requiere' ? 'requiere' : 'compuesto');
+          svg += '<path class="' + clase + '" data-de="' + esc(a.destino) + '" data-a="' + esc(id) + '" d="M' + x1 + ' ' + y1 +
+            ' C' + (x1 + dx) + ' ' + y1 + ' ' + (x2 - dx) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>';
+          const grado = a.etapa || a.modo;
+          if (grado) textos.push('<text class="arista-texto" data-de="' + esc(a.destino) + '" data-a="' + esc(id) + '" x="' +
+            (x2 - 6) + '" y="' + (y2 - 6) + '" text-anchor="end">' + esc(legible(grado)) + '</text>');
+        }
+      }
+      svg += textos.join('') + '</svg>';
+
+      let html = svg;
+      for (const c of m.carriles) {
+        html += '<div class="carril-nombre" style="left:14px;top:' + (c.y + 12) + 'px"><b>' + esc(c.titulo) + '</b>' + esc(c.detalle) + '</div>';
+      }
+      for (const id of m.ids) {
+        const n = N.get(id), p = m.pos[id];
+        const niv = nivel(id);
+        const escala = esPieza(id) ? ETAPAS : MODOS;
+        const barra = '<span class="barra" aria-hidden="true">' + escala.map((_, i) => '<i' + (i <= niv ? ' class="lleno"' : '') + '></i>').join('') + '</span>';
+        const clases = ['nodo', n.tipo];
+        if (objetivos.has(id)) clases.push('objetivo');
+        html += '<button class="' + clases.join(' ') + '" data-id="' + esc(id) + '" style="left:' + p.x + 'px;top:' + p.y +
+          'px;width:' + W + 'px;height:' + H + 'px" title="' + esc(n.nombre) + '"><span class="nombre">' + esc(n.nombre) +
+          (n.revisar ? '<span class="bandera" title="Pide revisión">⚑</span>' : '') + '</span>' + barra + '</button>';
+      }
+      lienzo.innerHTML = html;
+      aplicarZoom();
+      resaltar();
+    }
+
+    function resaltar() {
+      const lienzo = $('lienzo');
+      const id = estado.elegido;
+      lienzo.classList.toggle('foco', !!(id && maqueta && maqueta.conjunto.has(id)));
+      lienzo.querySelectorAll('.nodo').forEach(el => el.classList.remove('en-via', 'despues', 'elegido'));
+      lienzo.querySelectorAll('.arista, .arista-texto').forEach(el => el.classList.remove('en-via', 'despues'));
+      if (!id || !maqueta || !maqueta.conjunto.has(id)) return;
+      const antes = new Set([id]), pila = [id];
+      while (pila.length) {
+        const n = pila.pop();
+        for (const a of prereqs(n)) if (maqueta.conjunto.has(a.destino) && !antes.has(a.destino)) { antes.add(a.destino); pila.push(a.destino); }
+      }
+      const despues = new Set([id]), pila2 = [id];
+      while (pila2.length) {
+        const n = pila2.pop();
+        for (const a of ent(n)) if (PRE.has(a.rel) && maqueta.conjunto.has(a.origen) && !despues.has(a.origen)) { despues.add(a.origen); pila2.push(a.origen); }
+      }
+      lienzo.querySelectorAll('.nodo').forEach(el => {
+        const n = el.dataset.id;
+        if (antes.has(n)) el.classList.add('en-via');
+        else if (despues.has(n)) el.classList.add('despues');
+        if (n === id) el.classList.add('elegido');
+      });
+      lienzo.querySelectorAll('.arista, .arista-texto').forEach(el => {
+        const de = el.dataset.de, a = el.dataset.a;
+        if (antes.has(de) && antes.has(a)) el.classList.add('en-via');
+        else if (despues.has(de) && despues.has(a)) el.classList.add('despues');
+      });
+    }
+
+    function aplicarZoom() {
+      if (!maqueta) return;
+      const z = estado.zoom;
+      $('escala').style.transform = 'scale(' + z + ')';
+      $('escala').style.width = maqueta.ancho * z + 'px';
+      $('escala').style.height = maqueta.alto * z + 'px';
+    }
+    function ajustarZoom() {
+      if (!maqueta) return;
+      const marco = $('marco');
+      // Se ajusta al ancho; en vertical se hace scroll, para que el texto siga legible.
+      const z = Math.min(1, (marco.clientWidth - 8) / maqueta.ancho);
+      estado.zoom = Math.max(.6, Math.round(z * 100) / 100);
+      aplicarZoom();
+    }
+
+    // ---------- Panel ----------
+    function enlace(id, extra) {
+      return '<button class="enlace" data-ir="' + esc(id) + '">' + esc(nombre(id)) + '</button>' +
+        (extra ? ' <span class="grado">' + esc(extra) + '</span>' : '');
+    }
+    function listaRel(titulo, items) {
+      if (!items.length) return '';
+      return '<h3>' + titulo + '</h3><ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+    }
+
+    function pintarPanel() {
+      const panel = $('panel');
+      const id = estado.elegido;
+      if (!id || !N.has(id)) { panel.innerHTML = panelResumen(); return; }
+      const n = N.get(id);
+      let h = '';
+      if (n.tipo === 'pieza') {
+        const d = D.disciplinas[n.disciplina];
+        h += '<h2>' + esc(n.nombre) + '</h2><p class="sub">' + esc(d.nombre) + ', capa ' + esc(etiquetaCapa(n)) +
+          ', familia ' + esc((d.familias[n.familia] || n.familia).toLowerCase()) + '</p>';
+        if (n.revisar) h += '<p class="aviso-revisar">Escrito de buena fe; pide la revisión de alguien que lo practique.</p>';
+        if (n.descripcion) h += '<p>' + esc(n.descripcion) + '</p>';
+        h += '<h3>Tu etapa</h3>' + selectorNivel(id);
+        h += listaRel('Hecho de', sal(id).filter(r => r.rel === 'compuesto_de').map(r => enlace(r.destino, legible(r.etapa))));
+        h += listaRel('Requiere', sal(id).filter(r => r.rel === 'requiere').map(r => enlace(r.destino, legible(r.etapa || r.modo))));
+        h += listaRel('Realiza el concepto', sal(id).filter(r => r.rel === 'realiza').map(r => enlace(r.destino)));
+        h += listaRel('Abre paso a', ent(id).filter(r => PRE.has(r.rel)).map(r => enlace(r.origen)));
+        h += listaRel('Caracteriza', sal(id).filter(r => r.rel === 'caracteriza').map(r => esc(nombre(r.destino))));
+        if (n.indicadores && n.indicadores.length) {
+          h += listaRel('Para medir el avance', n.indicadores.map(i => {
+            const ind = d.indicadores[i] || { nombre: i };
+            return '<b>' + esc(ind.nombre) + '</b>' + (ind.descripcion ? '. <span class="grado">' + esc(ind.descripcion) + '</span>' : '');
+          }));
+        }
+      } else if (n.tipo === 'concepto') {
+        h += '<h2>' + esc(n.nombre) + '</h2><p class="sub">Concepto del dominio ' + esc(nombre(n.dominio)) + '</p>';
+        if (n.revisar) h += '<p class="aviso-revisar">Escrito de buena fe; pide la revisión de alguien que lo practique.</p>';
+        if (n.descripcion) h += '<p>' + esc(n.descripcion) + '</p>';
+        h += '<h3>Cómo lo conoces</h3>' + selectorNivel(id);
+        h += listaRel('Se apoya en', sal(id).filter(r => r.rel === 'requiere').map(r => enlace(r.destino, legible(r.modo))));
+        const porDisc = {};
+        for (const r of ent(id)) {
+          const o = N.get(r.origen);
+          if (!o || o.tipo !== 'pieza' || (r.rel !== 'realiza' && r.rel !== 'requiere')) continue;
+          (porDisc[o.disciplina] = porDisc[o.disciplina] || { realiza: [], requiere: [] })[r.rel].push(enlace(o.id, legible(r.modo)));
+        }
+        for (const [did, v] of Object.entries(porDisc)) {
+          h += '<h3>En ' + esc(D.disciplinas[did].nombre.toLowerCase()) + '</h3><ul>' +
+            v.realiza.map(x => '<li>Lo toca: ' + x + '</li>').join('') +
+            v.requiere.map(x => '<li>Lo necesita: ' + x + '</li>').join('') + '</ul>';
+        }
+        h += listaRel('Lo necesitan otros conceptos', ent(id).filter(r => r.rel === 'requiere' && esConcepto(r.origen)).map(r => enlace(r.origen)));
+        h += listaRel('Caracteriza', sal(id).filter(r => r.rel === 'caracteriza').map(r => esc(nombre(r.destino))));
+        h += listaRel('Lo fijan los estilos', ent(id).filter(r => r.rel === 'configura').map(r => '<b>' + esc(nombre(r.origen)) + ':</b> ' + esc(r.valor)));
+      }
+      h += '<p style="margin-top:20px"><button class="enlace" data-ir="">Volver al resumen de la vía</button></p>';
+      panel.innerHTML = h;
+    }
+
+    function panelResumen() {
+      const r = ruta;
+      const enMarcha = r.piezas.filter(p => nivel(p) >= 0).length;
+      const dominadas = r.piezas.filter(p => nivel(p) >= ETAPAS.indexOf('a-tempo')).length;
+      const titulo = estado.via ? D.vias.find(v => v.id === estado.via).titulo :
+        [nombre(r.disciplina), estado.estilo && nombre(estado.estilo), estado.objetivo && 'hasta ' + nombre(estado.objetivo)].filter(Boolean).join(', ');
+      return '<h2>' + esc(titulo) + '</h2>' +
+        '<p class="sub">Toca cualquier pieza para ver en rojo la vía que lleva hasta ella.</p>' +
+        '<div class="cifras resumen"><div><strong>' + r.piezas.length + '</strong>piezas</div>' +
+        '<div><strong>' + r.conceptos.length + '</strong>conceptos</div>' +
+        '<div><strong>' + enMarcha + '</strong>empezadas</div>' +
+        '<div><strong>' + dominadas + '</strong>a tempo o más</div></div>' +
+        '<h3>Cómo leer el mapa</h3><div class="leyenda">' +
+        '<div><svg width="44" height="10"><path d="M2 5H42" stroke="currentColor" stroke-width="1.6"/></svg>Está hecho de</div>' +
+        '<div><svg width="44" height="10"><path d="M2 5H42" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Requiere antes</div>' +
+        '<div><svg width="44" height="14"><rect x="2" y="1" width="40" height="12" rx="6" fill="none" stroke="currentColor" stroke-dasharray="3 2"/></svg>Concepto del dominio</div>' +
+        '<div><svg width="44" height="10"><rect x="2" y="3" width="6" height="4" rx="1" fill="var(--avance)"/><rect x="10" y="3" width="6" height="4" rx="1" fill="var(--avance)"/><rect x="18" y="3" width="6" height="4" rx="1" fill="var(--linea-suave)"/></svg>Tu avance</div>' +
+        '<div><span style="width:44px;color:var(--revisar);font-weight:700;text-align:center">⚑</span>Pide revisión</div></div>' +
+        '<h3>Las etapas de cada pieza</h3><p class="grado">' + ETAPAS.map(legible).join(', ') +
+        '. Cada combinación de piezas se convierte en una pieza de la capa siguiente, y el bucle vuelve a empezar.</p>' +
+        '<p class="grado">Tu avance se guarda solo en este navegador.</p>';
+    }
+
+    // ---------- Recorrido ----------
+    function pintarRecorrido() {
+      const r = ruta;
+      let h = '<div class="documento-interior"><h2>Recorrido</h2><p class="sub">Ordenado para que nada aparezca antes que aquello en lo que se apoya. ' +
+        'Marca tu etapa en cada pieza; se guarda en este navegador.</p>';
+      r.piezas.forEach((id, i) => {
+        const n = N.get(id), d = D.disciplinas[n.disciplina];
+        const det = [];
+        if (n.descripcion) det.push(esc(n.descripcion));
+        const hecho = sal(id).filter(x => x.rel === 'compuesto_de').map(x => nombre(x.destino) + (x.etapa ? ' (' + legible(x.etapa) + ')' : ''));
+        if (hecho.length) det.push('Hecho de: ' + esc(hecho.join(', ')));
+        const req = sal(id).filter(x => x.rel === 'requiere').map(x => nombre(x.destino) + ((x.etapa || x.modo) ? ' (' + legible(x.etapa || x.modo) + ')' : ''));
+        if (req.length) det.push('Requiere: ' + esc(req.join(', ')));
+        h += '<div class="paso"><span class="num">' + (i + 1) + '</span><div><span class="titulo">' + esc(n.nombre) +
+          (n.revisar ? ' <span style="color:var(--revisar)">⚑</span>' : '') + '</span> <span class="meta">' + esc(etiquetaCapa(n)) + ', ' +
+          esc((d.familias[n.familia] || n.familia).toLowerCase()) + '</span></div>' + selectorNivel(id) +
+          '<div class="detalle">' + det.map(x => '<span>' + x + '</span>').join('') + '</div></div>';
+      });
+      h += '<h3>Lo que necesitas del dominio</h3><table><thead><tr><th>Concepto</th><th>Dominio</th><th>Grado que se pide</th><th>Cómo lo conoces</th></tr></thead><tbody>';
+      for (const c of r.conceptos) {
+        const n = N.get(c);
+        h += '<tr><td>' + esc(n.nombre) + (n.revisar ? ' <span style="color:var(--revisar)">⚑</span>' : '') + '</td><td>' + esc(nombre(n.dominio)) +
+          '</td><td>' + esc(legible(gradoPedido(c, r.todo)) || 'de base') + '</td><td>' + selectorNivel(c) + '</td></tr>';
+      }
+      h += '</tbody></table></div>';
+      $('vista-recorrido').innerHTML = h;
+    }
+
+    // ---------- Estilos ----------
+    function pintarEstilos() {
+      const dominios = [...new Set(D.nodos.filter(n => n.tipo === 'estilo').map(n => n.dominio))];
+      let h = '<div class="documento-interior"><h2>Estilos</h2><p class="sub">Un estilo es una combinación fijada de valores sobre las dimensiones de un dominio. ' +
+        'Compararlos muestra en qué se parecen y en qué no.</p>';
+      for (const dom of dominios) {
+        const estilos = D.nodos.filter(n => n.tipo === 'estilo' && n.dominio === dom).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+        const dims = [], valores = {};
+        for (const e of estilos) for (const r of sal(e.id)) if (r.rel === 'configura') {
+          if (!dims.includes(r.destino)) dims.push(r.destino);
+          (valores[r.destino] = valores[r.destino] || {})[e.id] = r.valor;
+        }
+        h += '<h3>' + esc(nombre(dom)) + '</h3><table><thead><tr><th>Dimensión</th>' + estilos.map(e => '<th>' + esc(e.nombre) +
+          (e.revisar ? ' <span style="color:var(--revisar)">⚑</span>' : '') + '</th>').join('') + '</tr></thead><tbody>';
+        for (const d of dims) {
+          h += '<tr><td><b>' + esc(nombre(d)) + '</b></td>' + estilos.map(e => '<td>' + esc((valores[d] || {})[e.id] || '—') + '</td>').join('') + '</tr>';
+        }
+        h += '</tbody></table>';
+        for (const e of estilos) {
+          const lineas = [];
+          for (const [did, disc] of Object.entries(D.disciplinas)) {
+            if (disc.dominio !== dom && !objetivosDe({ disciplina: did, estilo: e.id }).length) continue;
+            const piezas = objetivosDe({ disciplina: did, estilo: e.id });
+            if (!piezas.length) continue;
+            const via = D.vias.find(v => v.disciplina === did && v.estilo === e.id);
+            lineas.push('<li><b>' + esc(disc.nombre) + ':</b> ' + esc(piezas.map(nombre).join(', ')) +
+              ' <button class="enlace" data-abrir="' + esc(did) + '|' + esc(e.id) + '">ver la vía</button></li>');
+          }
+          if (lineas.length) h += '<div class="tarjeta" style="margin-top:12px"><h3>' + esc(e.nombre) + '</h3><p class="grado">' + esc(e.descripcion || '') +
+            '</p><ul style="padding-left:18px">' + lineas.join('') + '</ul></div>';
+        }
+      }
+      h += '</div>';
+      $('vista-estilos').innerHTML = h;
+    }
+
+    // ---------- Conceptos compartidos ----------
+    function pintarConceptos() {
+      let h = '<div class="documento-interior"><h2>Conceptos compartidos</h2><p class="sub">Conceptos del dominio que aparecen en más de una disciplina. ' +
+        'Una disciplina puede tocarlos (los realiza) o solo necesitarlos (los requiere).</p>';
+      const conceptos = D.nodos.filter(n => n.tipo === 'concepto').sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+      for (const c of conceptos) {
+        const porDisc = {};
+        for (const r of ent(c.id)) {
+          const o = N.get(r.origen);
+          if (!o || o.tipo !== 'pieza' || (r.rel !== 'realiza' && r.rel !== 'requiere')) continue;
+          (porDisc[o.disciplina] = porDisc[o.disciplina] || { realiza: [], requiere: [] })[r.rel]
+            .push(o.nombre + (r.modo ? ' (' + legible(r.modo) + ')' : ''));
+        }
+        if (Object.keys(porDisc).length < 2) continue;
+        h += '<div class="tarjeta"><h3>' + esc(c.nombre) + '</h3><p class="grado">' + esc(nombre(c.dominio)) + (c.descripcion ? '. ' + esc(c.descripcion) : '') +
+          '</p><table><thead><tr><th>Disciplina</th><th>Lo toca</th><th>Lo necesita</th></tr></thead><tbody>' +
+          Object.entries(porDisc).map(([did, v]) => '<tr><td>' + esc(D.disciplinas[did].nombre) + '</td><td>' + esc(v.realiza.join(', ') || '—') +
+            '</td><td>' + esc(v.requiere.join(', ') || '—') + '</td></tr>').join('') + '</tbody></table></div>';
+      }
+      h += '</div>';
+      $('vista-conceptos').innerHTML = h;
+    }
+
+    // ---------- Orquestación ----------
+    function pintarTodo(recalcular = true) {
+      if (recalcular) ruta = calcularRuta(estado);
+      pintarCabecera();
+      const marco = $('marco');
+      const sx = marco.scrollLeft, sy = marco.scrollTop;
+      pintarMapa();
+      if (!recalcular) { marco.scrollLeft = sx; marco.scrollTop = sy; }
+      pintarPanel();
+      pintarRecorrido();
+      pintarEstilos();
+      pintarConceptos();
+      for (const v of ['mapa', 'recorrido', 'estilos', 'conceptos']) $('vista-' + v).hidden = v !== estado.vista;
+      document.querySelectorAll('.pestana').forEach(b => b.setAttribute('aria-selected', String(b.dataset.vista === estado.vista)));
+    }
+
+    function elegir(id) {
+      estado.elegido = id || null;
+      if (estado.vista !== 'mapa') { estado.vista = 'mapa'; pintarTodo(false); }
+      else { resaltar(); pintarPanel(); }
+      if (id && maqueta && maqueta.pos[id]) {
+        const p = maqueta.pos[id], marco = $('marco'), z = estado.zoom;
+        const fuera = p.x * z < marco.scrollLeft || (p.x + W) * z > marco.scrollLeft + marco.clientWidth ||
+          p.y * z < marco.scrollTop || (p.y + H) * z > marco.scrollTop + marco.clientHeight;
+        if (fuera) marco.scrollTo({ left: p.x * z - marco.clientWidth / 2 + W * z / 2, top: p.y * z - marco.clientHeight / 2, behavior: 'smooth' });
+      }
+    }
+
+    document.addEventListener('click', e => {
+      const t = e.target.closest('button');
+      if (!t) return;
+      if (t.dataset.via) { aplicarVia(D.vias.find(v => v.id === t.dataset.via)); pintarTodo(); ajustarZoom(); return; }
+      if (t.dataset.nivel !== undefined) { fijarNivel(t.dataset.id, Number(t.dataset.nivel)); return; }
+      if (t.classList.contains('nodo')) { elegir(estado.elegido === t.dataset.id ? null : t.dataset.id); return; }
+      if (t.dataset.ir !== undefined) { elegir(t.dataset.ir); return; }
+      if (t.dataset.abrir) {
+        const [did, est] = t.dataset.abrir.split('|');
+        const via = D.vias.find(v => v.disciplina === did && v.estilo === est && !v.objetivo);
+        if (via) aplicarVia(via);
+        else { estado.via = null; estado.disciplina = did; estado.estilo = est; estado.objetivo = ''; estado.elegido = null; escribirHash(); }
+        estado.vista = 'mapa';
+        pintarTodo();
+        ajustarZoom();
+        return;
+      }
+      if (t.classList.contains('pestana')) { estado.vista = t.dataset.vista; pintarTodo(false); return; }
+    });
+
+    function cambioFiltro() {
+      estado.via = null;
+      estado.elegido = null;
+      const match = D.vias.find(v => (v.disciplina || (N.get(v.objetivo) || {}).disciplina) === estado.disciplina &&
+        (v.estilo || '') === estado.estilo && (v.objetivo || '') === estado.objetivo);
+      if (match) estado.via = match.id;
+      escribirHash();
+      pintarTodo();
+      ajustarZoom();
+    }
+    $('selDisciplina').addEventListener('change', e => { estado.disciplina = e.target.value; estado.estilo = ''; estado.objetivo = ''; cambioFiltro(); });
+    $('selEstilo').addEventListener('change', e => { estado.estilo = e.target.value; cambioFiltro(); });
+    $('selObjetivo').addEventListener('change', e => { estado.objetivo = e.target.value; cambioFiltro(); });
+
+    $('zoomMas').addEventListener('click', () => { estado.zoom = Math.min(1.6, +(estado.zoom + .15).toFixed(2)); aplicarZoom(); });
+    $('zoomMenos').addEventListener('click', () => { estado.zoom = Math.max(.35, +(estado.zoom - .15).toFixed(2)); aplicarZoom(); });
+    $('zoomAjustar').addEventListener('click', ajustarZoom);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && estado.elegido) elegir(null); });
+    window.addEventListener('hashchange', () => { leerHash(); pintarTodo(); ajustarZoom(); });
+
+    leerHash();
+    pintarTodo();
+    ajustarZoom();
+  })();
+  </script>
+</body>
+</html>

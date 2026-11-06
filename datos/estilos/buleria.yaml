@@ -1,0 +1,33 @@
+# Estilo Bulería: segunda configuración del dominio Música, para comparar con la salsa.
+# Sirve de prueba: una misma pieza de guitarra (acentos y apagados) aparece en las dos vías.
+
+estilo:
+  id: musica.estilo.buleria
+  nombre: Bulería
+  dominio: musica
+  descripcion: Palo flamenco festero de ciclo de doce tiempos.
+  configuracion:
+    - dimension: musica.compas
+      valor: ciclo de 12 tiempos con acentos en el 12, 3, 6, 8 y 10
+    - dimension: musica.patron-ritmico
+      valor: las palmas y el rasgueo marcan los acentos; los remates cierran en el 10
+    - dimension: musica.tempo
+      valor: rápido
+    - dimension: musica.progresion
+      valor: cadencia andaluza y modo flamenco (por arriba, sobre mi)
+    - dimension: musica.forma
+      valor: falsetas, letras y remates encadenados, sin forma fija
+  revisar: true
+
+conceptos:
+  - id: musica.buleria.compas-12
+    nombre: Compás de bulería
+    descripcion: Ciclo de doce con acentos en el 12, 3, 6, 8 y 10.
+    requiere: [musica.acento, musica.contratiempo]
+    caracteriza: [musica.estilo.buleria]
+
+  - id: musica.buleria.remate
+    nombre: Remate
+    descripcion: Frase que cierra un ciclo y cuadra en el 10.
+    requiere: [musica.buleria.compas-12]
+    caracteriza: [musica.estilo.buleria]

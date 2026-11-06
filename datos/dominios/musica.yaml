@@ -1,0 +1,97 @@
+# Dominio Música: esqueleto mínimo.
+# Solo los grandes nodos que piden las vías actuales (garantía literaria).
+# Lo propio de cada estilo vive en datos/estilos/.
+
+dominio:
+  id: musica
+  nombre: Música
+  descripcion: Lo que comparten todos los instrumentos, se sepa nombrar o no.
+
+conceptos:
+  # Ritmo
+  - id: musica.pulso
+    nombre: Pulso
+    descripcion: El latido regular sobre el que se ordena todo lo demás.
+
+  - id: musica.tempo
+    nombre: Tempo
+    descripcion: Velocidad del pulso.
+    requiere: [musica.pulso]
+
+  - id: musica.subdivision
+    nombre: Subdivisión
+    descripcion: Partes iguales dentro de cada pulso (corcheas, tresillos, semicorcheas).
+    requiere: [musica.pulso]
+
+  - id: musica.compas
+    nombre: Compás
+    descripcion: Agrupación de pulsos en ciclos con un primer tiempo reconocible.
+    requiere: [musica.pulso]
+
+  - id: musica.acento
+    nombre: Acento
+    descripcion: Golpes que pesan más y dan forma al ciclo.
+    requiere: [musica.compas]
+
+  - id: musica.contratiempo
+    nombre: Contratiempo y síncopa
+    descripcion: Golpes fuera del pulso o que desplazan el acento esperado.
+    requiere: [musica.subdivision, musica.acento]
+
+  - id: musica.patron-ritmico
+    nombre: Patrón rítmico
+    descripcion: Figura que se repite y sostiene un estilo (ostinato).
+    requiere: [musica.contratiempo]
+
+  - id: musica.polirritmia
+    nombre: Capas rítmicas entrelazadas
+    descripcion: Varios patrones distintos sonando a la vez y encajando entre sí.
+    requiere: [musica.patron-ritmico]
+
+  # Altura y armonía
+  - id: musica.altura
+    nombre: Altura
+    descripcion: Lo agudo o grave de un sonido; la nota.
+
+  - id: musica.intervalo
+    nombre: Intervalo
+    descripcion: Distancia entre dos notas.
+    requiere: [musica.altura]
+
+  - id: musica.escala
+    nombre: Escala
+    descripcion: Conjunto ordenado de notas del que sale una música.
+    requiere: [musica.intervalo]
+
+  - id: musica.tonalidad
+    nombre: Tonalidad
+    descripcion: Escala con un centro de gravedad al que todo quiere volver.
+    requiere: [musica.escala]
+
+  - id: musica.acorde
+    nombre: Acorde
+    descripcion: Varias notas sonando juntas con un carácter propio (mayor, menor, séptima…).
+    requiere: [musica.intervalo]
+
+  - id: musica.funcion-armonica
+    nombre: Función armónica
+    descripcion: Papel de cada acorde en la tonalidad (reposo, tensión, vuelta); tónica, subdominante, dominante.
+    requiere: [musica.tonalidad, musica.acorde]
+
+  - id: musica.progresion
+    nombre: Progresión
+    descripcion: Sucesión de acordes que se repite o avanza.
+    requiere: [musica.funcion-armonica]
+
+  # Expresión y organización
+  - id: musica.dinamica
+    nombre: Dinámica
+    descripcion: Intensidad y sus cambios; subir y bajar la energía.
+
+  - id: musica.textura
+    nombre: Textura
+    descripcion: Cómo se reparten los papeles (ritmo, bajo, armonía, melodía) entre quienes tocan.
+
+  - id: musica.forma
+    nombre: Forma
+    descripcion: Secciones de un tema y cómo se suceden.

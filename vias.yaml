@@ -1,0 +1,25 @@
+# Vías que se generan con:  python herramientas/vias.py todo
+# Cada vía es una vista filtrada del grafo. Tres formas de pedirla:
+#   disciplina + estilo  → las piezas de esa disciplina que caracterizan el estilo
+#   disciplina sola      → todas las piezas de la disciplina
+#   objetivo             → todo lo necesario para llegar a una pieza concreta
+
+vias:
+  - id: guitarra-salsa
+    titulo: Guitarra · Salsa
+    disciplina: guitarra
+    estilo: musica.estilo.salsa
+
+  - id: percusion-corporal-salsa
+    titulo: Percusión corporal · Salsa
+    disciplina: percusion-corporal
+    estilo: musica.estilo.salsa
+
+  - id: guitarra-buleria
+    titulo: Guitarra · Bulería
+    disciplina: guitarra
+    estilo: musica.estilo.buleria
+
+  - id: cartomagia-set-de-cerca
+    titulo: Cartomagia · Hasta un set de magia de cerca
+    objetivo: carto.espectaculo.set-de-cerca
